@@ -3,6 +3,7 @@
 
 /**
  * Crex24.php is a very simple but functionnal class to access the CREX24 exchange API.
+ * it can be easily extended to support more functions, I provide only the few I need, you can add what you want from that base.
  *
  * @author Nicolas Choukroun
  */
