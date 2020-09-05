@@ -1,20 +1,26 @@
-
 <?php
+/**
+ * Copyright (c) 2018. Nicolas Choukroun.
+ * Copyright (c) 2018. The PHPSnipe Developers.
+ * This program is free software; you can redistribute it and/or modify it under the terms of the Attribution 4.0 International License as published by the Creative Commons Corporation; either version 2 of the License, or (at your option) any later version.  See COPYING for more details.
+ *
+ */
+
 
 /**
- * Crex24.php is a very simple but functionnal class to access the CREX24 exchange API.
- * it can be easily extended to support more functions, I provide only the few I need, you can add what you want from that base.
- *
+ * Description of crex24
+ * Simple base class to access teh CREX24 API
  * @author Nicolas Choukroun
  */
 class Crex24 {
 
     private $apiKey = '';
-    private $secret = '';
-
-    public function __construct($apikey = CREX24_KEY, $apisecret = CREX24_SECRET) {
-        $apiKey = $apikey;
-        $secret = $apisecret;
+    private $apiSecret = '';
+    
+    public function __construct($key, $secret) {
+        if ($key=="" || $secret=="") die("API Key and API Secret cannot be null.")
+        $apiKey = $key;
+        $apiSecret = $secret;
     }
 
     function public($type, $func = "", $filter = "") {
@@ -75,20 +81,21 @@ class Crex24 {
         $path = '/v2/trading/placeOrder';
         $url = 'https://api.crex24.com';
 
+        if ($apiKey=="" || $apiSecret=="") die("API KEY or API SECRET not defined.");
         $body = '{
         "instrument": "KYF-BTC",
         "side": "buy",
         "volume": ' . $volume . ',
         "price": ' . $this->strnbr($price) . '
-    }';
+        }';
         $jsonbody = json_encode($body);
         //echo $body . "\n";
         $nonce = round(microtime(true) * 1000);
 
-        $key = base64_decode($secret);
+        $key = base64_decode($apiSecret);
         $message = $url . $nonce . $body;
         //$signature = base64_encode(hash_hmac('sha512', $message, $apiKey, true));
-        $signature = base64_encode(hash_hmac('sha512', $path . $nonce . $body, base64_decode($secret), true));
+        $signature = base64_encode(hash_hmac('sha512', $path . $nonce . $body, base64_decode($apiSecret), true));
 
         $curl = curl_init($url . $path);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
@@ -125,15 +132,15 @@ class Crex24 {
         "volume": ' . $volume . ',
         "price": ' . $this->strnbr($price) . '
         }';
-        
+
         $jsonbody = json_encode($body);
         //echo $body . "\n";
         $nonce = round(microtime(true) * 1000);
 
-        $key = base64_decode($secret);
+        $key = base64_decode($apiSecret);
         $message = $url . $nonce . $body;
         //$signature = base64_encode(hash_hmac('sha512', $message, $apiKey, true));
-        $signature = base64_encode(hash_hmac('sha512', $path . $nonce . $body, base64_decode($secret), true));
+        $signature = base64_encode(hash_hmac('sha512', $path . $nonce . $body, base64_decode($apiSecret), true));
 
         $curl = curl_init($url . $path);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
@@ -158,16 +165,17 @@ class Crex24 {
         return $responseBody;
     }
 
-    function getBuyWall($debug) {
+    
+    function getBuyWall($debug = false) {
         $buy = array();
         if ($debug)
             echo "Order Book Buy Wall\n";
         $r = $this->public("orderbook", "instrument", "KYF-BTC&limit=10");
+        for ($i = 0; $i < 10; $i++) {
+            $buy[$i]['price'] = $r['buyLevels'][$i]['price'];
+            $buy[$i]['volume'] = $r['buyLevels'][$i]['volume'];
+        }
         if ($debug) {
-            for ($i = 0; $i < 10; $i++) {
-                $buy[$i]['price'] = $r['buyLevels'][$i]['price'];
-                $buy[$i]['volume'] = $r['buyLevels'][$i]['volume'];
-            }
             for ($i = 0; $i < 10; $i++) {
                 echo intval($i) . " - " . $this->strnbr($buy[$i]['price']) . " - " . $buy[$i]['volume'] . "\r\n";
             }
@@ -180,11 +188,12 @@ class Crex24 {
         if ($debug)
             echo "Order Book Sell Wall\n";
         $r = $this->public("orderbook", "instrument", "KYF-BTC&limit=10");
+        for ($i = 0; $i < 10; $i++) {
+            $sell[9 - $i]['price'] = $r['sellLevels'][$i]['price'];
+            $sell[9 - $i]['volume'] = $r['sellLevels'][$i]['volume'];
+        }
         if ($debug) {
-            for ($i = 0; $i < 10; $i++) {
-                $sell[9 - $i]['price'] = $r['sellLevels'][$i]['price'];
-                $sell[9 - $i]['volume'] = $r['sellLevels'][$i]['volume'];
-            }
+
             for ($i = 0; $i < 10; $i++) {
                 echo intval($i) . " - " . $this->strnbr($sell[$i]['price']) . " - " . $sell[$i]['volume'] . "\r\n";
             }
