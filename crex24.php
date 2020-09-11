@@ -18,9 +18,9 @@ class Crex24 {
     private $apiSecret = '';
     
     public function __construct($key, $secret) {
-        if ($key=="" || $secret=="") die("API Key and API Secret cannot be null.")
-        $apiKey = $key;
-        $apiSecret = $secret;
+        if ($key=="" || $secret=="") die("API Key and API Secret cannot be null.");
+        $this->apiKey = $key;
+        $this->apiSecret = $secret;
     }
 
     function public($type, $func = "", $filter = "") {
@@ -81,7 +81,7 @@ class Crex24 {
         $path = '/v2/trading/placeOrder';
         $url = 'https://api.crex24.com';
 
-        if ($apiKey=="" || $apiSecret=="") die("API KEY or API SECRET not defined.");
+        if ($this->apiKey=="" || $this->apiSecret=="") die("API KEY or API SECRET not defined.");
         $body = '{
         "instrument": "KYF-BTC",
         "side": "buy",
@@ -92,16 +92,16 @@ class Crex24 {
         //echo $body . "\n";
         $nonce = round(microtime(true) * 1000);
 
-        $key = base64_decode($apiSecret);
+        $key = base64_decode($this->apiSecret);
         $message = $url . $nonce . $body;
         //$signature = base64_encode(hash_hmac('sha512', $message, $apiKey, true));
-        $signature = base64_encode(hash_hmac('sha512', $path . $nonce . $body, base64_decode($apiSecret), true));
+        $signature = base64_encode(hash_hmac('sha512', $path . $nonce . $body, base64_decode($this->apiSecret), true));
 
         $curl = curl_init($url . $path);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
         curl_setopt($curl, CURLOPT_HTTPHEADER, [
             'Content-Length:' . strlen($body),
-            'X-CREX24-API-KEY:' . $apiKey,
+            'X-CREX24-API-KEY:' . $this->apiKey,
             'X-CREX24-API-NONCE:' . $nonce,
             'X-CREX24-API-SIGN:' . $signature,
             'Content-Type: application/json'
@@ -137,16 +137,16 @@ class Crex24 {
         //echo $body . "\n";
         $nonce = round(microtime(true) * 1000);
 
-        $key = base64_decode($apiSecret);
+        $key = base64_decode($this->apiSecret);
         $message = $url . $nonce . $body;
         //$signature = base64_encode(hash_hmac('sha512', $message, $apiKey, true));
-        $signature = base64_encode(hash_hmac('sha512', $path . $nonce . $body, base64_decode($apiSecret), true));
+        $signature = base64_encode(hash_hmac('sha512', $path . $nonce . $body, base64_decode($this->apiSecret), true));
 
         $curl = curl_init($url . $path);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
         curl_setopt($curl, CURLOPT_HTTPHEADER, [
             'Content-Length:' . strlen($body),
-            'X-CREX24-API-KEY:' . $apiKey,
+            'X-CREX24-API-KEY:' . $this->apiKey,
             'X-CREX24-API-NONCE:' . $nonce,
             'X-CREX24-API-SIGN:' . $signature,
             'Content-Type: application/json'
